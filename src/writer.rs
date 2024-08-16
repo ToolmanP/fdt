@@ -94,7 +94,8 @@ const FDT_LAST_COMP_VERSION: u32 = 16;
 /// The same max depth as in the Linux kernel.
 const FDT_MAX_NODE_DEPTH: usize = 64;
 
-/// Interface for writing a Flattened Devicetree (FDT) and emitting a Devicetree Blob (DTB).
+/// Interface for writing a Flattened Devicetree (FDT) and emitting a Devicetree
+/// Blob (DTB).
 #[derive(Debug)]
 pub struct FdtWriter {
     data: Vec<u8>,
@@ -112,8 +113,9 @@ pub struct FdtWriter {
 
 /// Reserved physical memory region.
 ///
-/// This represents an area of physical memory reserved by the firmware and unusable by the OS.
-/// For example, this could be used to preserve bootloader code or data used at runtime.
+/// This represents an area of physical memory reserved by the firmware and
+/// unusable by the OS. For example, this could be used to preserve bootloader
+/// code or data used at runtime.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FdtReserveEntry {
     address: u64,
@@ -169,7 +171,8 @@ fn check_overlapping(mem_reservations: &[FdtReserveEntry]) -> Result<()> {
 // https://devicetree-specification.readthedocs.io/en/stable/devicetree-basics.html#node-name-requirements
 fn node_name_valid(name: &str) -> bool {
     // Special case: allow empty node names.
-    // This is technically not allowed by the spec, but it seems to be accepted in practice.
+    // This is technically not allowed by the spec, but it seems to be accepted in
+    // practice.
     if name.is_empty() {
         return true;
     }
@@ -234,8 +237,8 @@ fn property_name_valid_char(c: char) -> bool {
 /// Handle to an open node created by `FdtWriter::begin_node`.
 ///
 /// This must be passed back to `FdtWriter::end_node` to close the nodes.
-/// Nodes must be closed in reverse order as they were opened, matching the nesting structure
-/// of the devicetree.
+/// Nodes must be closed in reverse order as they were opened, matching the
+/// nesting structure of the devicetree.
 #[derive(Debug)]
 pub struct FdtWriterNode {
     depth: usize,
@@ -251,7 +254,8 @@ impl FdtWriter {
     ///
     /// # Arguments
     ///
-    /// `mem_reservations` - reserved physical memory regions to list in the FDT header.
+    /// `mem_reservations` - reserved physical memory regions to list in the FDT
+    /// header.
     pub fn new_with_mem_reserv(mem_reservations: &[FdtReserveEntry]) -> Result<Self> {
         let data = vec![0u8; FDT_HEADER_SIZE]; // Reserve space for header.
 
@@ -319,7 +323,8 @@ impl FdtWriter {
         self.data.extend(core::iter::repeat(0).take(num_bytes));
     }
 
-    // Append padding bytes (0x00) until the length of data is a multiple of `alignment`.
+    // Append padding bytes (0x00) until the length of data is a multiple of
+    // `alignment`.
     fn align(&mut self, alignment: usize) {
         let offset = self.data.len() % alignment;
         if offset != 0 {
@@ -329,8 +334,8 @@ impl FdtWriter {
 
     // Rewrite the value of a big-endian u32 within data.
     fn update_u32(&mut self, offset: usize, val: u32) {
-        // Safe to use `+ 4` since we are calling this function with small values, and it's a
-        // private function.
+        // Safe to use `+ 4` since we are calling this function with small values, and
+        // it's a private function.
         let data_slice = &mut self.data[offset..offset + 4];
         data_slice.copy_from_slice(&val.to_be_bytes());
     }
@@ -381,8 +386,8 @@ impl FdtWriter {
         }
 
         self.append_u32(FDT_END_NODE);
-        // This can not underflow. The above `if` makes sure there is at least one open node
-        // (node_depth >= 1).
+        // This can not underflow. The above `if` makes sure there is at least one open
+        // node (node_depth >= 1).
         self.node_depth -= 1;
         self.node_ended = true;
         Ok(())
@@ -490,8 +495,8 @@ impl FdtWriter {
     }
 
     /// Write a [`phandle`](https://devicetree-specification.readthedocs.io/en/stable/devicetree-basics.html?#phandle)
-    /// property. The value is checked for uniqueness within the FDT. In the case of a duplicate
-    /// [`Error::DuplicatePhandle`] is returned.
+    /// property. The value is checked for uniqueness within the FDT. In the
+    /// case of a duplicate [`Error::DuplicatePhandle`] is returned.
     pub fn property_phandle(&mut self, val: u32) -> Result<()> {
         if !self.phandles.insert(val) {
             return Err(Error::DuplicatePhandle);
@@ -1031,7 +1036,8 @@ mod tests {
 
     #[test]
     fn test_cmp_mem_reservations() {
-        // Test that just the address is taken into consideration when comparing to `FdtReserveEntry`.
+        // Test that just the address is taken into consideration when comparing to
+        // `FdtReserveEntry`.
         assert_eq!(
             FdtReserveEntry::new(0x1, 10)
                 .unwrap()
